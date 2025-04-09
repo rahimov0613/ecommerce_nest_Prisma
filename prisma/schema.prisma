@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Productstatus {
+  out_of_stock
+  in_stock
+  running_on
+}
+
+enum orderStatus {
+  complited
+  pending
+  failed
+}
+
+model users {
+  id           Int      @id @default(autoincrement())
+  first_name   String
+  created_at   DateTime @default(now())
+  country_code Int
+  country      countries @relation(fields: [country_code], references: [code]) // FK
+  orders       orders[] 
+  merchants    merchants[] @relation("UserAdmins") 
+}
+
+model countries {
+  code      Int       @id @default(autoincrement())
+  name      String
+  continent_name String
+  users     users[]    
+  merchants merchants[] 
+}
+
+model products {
+  id          Int           @id @default(autoincrement())
+  name        String
+  merchant_id Int
+  merchant    merchants      @relation(fields: [merchant_id], references: [id]) // FK
+  price       Decimal
+  status      Productstatus @default(out_of_stock)
+  created_at  DateTime      @default(now())
+}
+
+model orders {
+  id         Int         @id @default(autoincrement())
+  user_id    Int
+  user       users       @relation(fields: [user_id], references: [id]) // FK
+  status     orderStatus @default(failed)
+  created_at DateTime    @default(now())
+}
+
+model merchants {
+  id          Int       @id @default(autoincrement())
+  coutry_code Int
+  country     countries @relation(fields: [coutry_code], references: [code]) // FK
+  name        String
+  created_at  DateTime  @default(now())
+  admin_id    Int
+  userId      users     @relation("UserAdmins", fields: [admin_id], references: [id]) // FK
+  products    products[] 
+}
